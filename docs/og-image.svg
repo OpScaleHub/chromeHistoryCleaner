@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" font-family="'Segoe UI', Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00d4ff"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <radialGradient id="orb1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="orb2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#0a0b14"/>
+  <circle cx="150" cy="120" r="320" fill="url(#orb1)"/>
+  <circle cx="1080" cy="560" r="360" fill="url(#orb2)"/>
+
+  <!-- Subtle grid -->
+  <g stroke="#ffffff" stroke-opacity="0.04">
+    <path d="M0 158 H1200 M0 316 H1200 M0 474 H1200"/>
+    <path d="M240 0 V630 M480 0 V630 M720 0 V630 M960 0 V630"/>
+  </g>
+
+  <!-- Shield + check logo -->
+  <g transform="translate(96,150) scale(2.1)">
+    <path d="M32 4L8 16v16c0 14.4 10.24 27.84 24 32 13.76-4.16 24-17.6 24-32V16L32 4z" fill="url(#accent)" opacity="0.95"/>
+    <path d="M24 30l6 6 10-12" stroke="#ffffff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Title -->
+  <text x="320" y="250" fill="#ffffff" font-size="72" font-weight="800" letter-spacing="-1">Chrome History</text>
+  <text x="320" y="332" fill="url(#accent)" font-size="72" font-weight="800" letter-spacing="-1">Cleaner</text>
+
+  <!-- Subtitle -->
+  <text x="322" y="392" fill="#9aa0b8" font-size="30" font-weight="500">Surgically remove Chrome browsing data for a specific domain.</text>
+
+  <!-- Tags -->
+  <g font-size="24" font-weight="600">
+    <rect x="322" y="430" width="150" height="46" rx="23" fill="#00d4ff" fill-opacity="0.1" stroke="#00d4ff" stroke-opacity="0.35"/>
+    <text x="397" y="461" fill="#00d4ff" text-anchor="middle">Dry-run</text>
+
+    <rect x="488" y="430" width="200" height="46" rx="23" fill="#00d4ff" fill-opacity="0.1" stroke="#00d4ff" stroke-opacity="0.35"/>
+    <text x="588" y="461" fill="#00d4ff" text-anchor="middle">Cross-platform</text>
+
+    <rect x="704" y="430" width="230" height="46" rx="23" fill="#00d4ff" fill-opacity="0.1" stroke="#00d4ff" stroke-opacity="0.35"/>
+    <text x="819" y="461" fill="#00d4ff" text-anchor="middle">Profile-aware</text>
+  </g>
+
+  <!-- Footer mono line -->
+  <text x="322" y="540" fill="#6b7090" font-size="24" font-family="'JetBrains Mono', ui-monospace, Menlo, monospace">$ chrome-cleaner -site example.com -dry-run</text>
+</svg>

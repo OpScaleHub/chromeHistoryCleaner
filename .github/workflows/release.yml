@@ -1,0 +1,226 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - ".github/**"
+  # Manual trigger — lets a maintainer cut a release on demand (e.g. the very
+  # first one) without waiting for a qualifying Conventional Commit. Choosing a
+  # bump other than "auto" overrides commit analysis.
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release bump (auto = derive from commits)"
+        type: choice
+        default: auto
+        options: [auto, patch, minor, major]
+
+permissions:
+  contents: write
+
+# Serialize releases: two quick pushes to main must not race to compute and push
+# the same tag (the second push would fail on an existing tag).
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Tag & Release
+    runs-on: ubuntu-latest
+
+    steps:
+      # ──────────────────────────────────────────────
+      # 1. Checkout with full history + tags (needed for commit-range analysis)
+      # ──────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+
+      # ──────────────────────────────────────────────
+      # 2. Quality gate — never cut a release from a broken main
+      # ──────────────────────────────────────────────
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test ./...
+
+      # ──────────────────────────────────────────────
+      # 3. Determine latest released version from the GitHub Releases API
+      #    (/releases/latest ignores drafts & prereleases; 404 when none exist)
+      # ──────────────────────────────────────────────
+      - name: Get latest release tag
+        id: latest_tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=$(gh api "repos/${{ github.repository }}/releases/latest" \
+                  --jq '.tag_name // empty' 2>/dev/null || true)
+          if [ -z "$TAG" ]; then
+            TAG="v0.0.0"
+            echo "No published release found — starting from $TAG"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Latest released tag: $TAG"
+
+      # ──────────────────────────────────────────────
+      # 4. Analyse Conventional Commits & calculate the next version
+      # ──────────────────────────────────────────────
+      - name: Calculate next version
+        id: next_version
+        env:
+          LATEST_TAG: ${{ steps.latest_tag.outputs.tag }}
+          FORCE_BUMP: ${{ github.event.inputs.release_type || 'auto' }}
+        run: |
+          set -euo pipefail
+
+          # Strip leading 'v' for arithmetic
+          VERSION="${LATEST_TAG#v}"
+          MAJOR="${VERSION%%.*}"
+          REST="${VERSION#*.}"
+          MINOR="${REST%%.*}"
+          PATCH="${REST#*.}"
+          echo "Current version: $MAJOR.$MINOR.$PATCH"
+
+          if [ "$FORCE_BUMP" != "auto" ]; then
+            # Manual override via workflow_dispatch.
+            BUMP="$FORCE_BUMP"
+            echo "Forced bump (workflow_dispatch): $BUMP"
+          else
+            # Commit range: from the latest tag (if it exists in git history) to HEAD.
+            if git rev-parse "$LATEST_TAG" >/dev/null 2>&1; then
+              RANGE="${LATEST_TAG}..HEAD"
+            else
+              RANGE="HEAD"
+            fi
+
+            # Walk full commit messages (%B), NUL-delimited, so that a
+            # "BREAKING CHANGE:" footer in the body is detected — not just the
+            # subject line. Each record is one complete commit message.
+            BUMP="none"
+            while IFS= read -r -d '' MSG; do
+              SUBJECT="$(printf '%s' "$MSG" | head -n1)"
+
+              # BREAKING CHANGE anywhere in the message, or a "type!:" bang subject.
+              if printf '%s' "$MSG" | grep -qiE '(BREAKING CHANGE|BREAKING-CHANGE)' \
+                 || printf '%s' "$SUBJECT" | grep -qE '^[a-z]+(\(.+\))?!:'; then
+                BUMP="major"
+                break
+              fi
+              if printf '%s' "$SUBJECT" | grep -qE '^feat(\(.+\))?:'; then
+                if [ "$BUMP" != "major" ]; then BUMP="minor"; fi
+              fi
+              if printf '%s' "$SUBJECT" | grep -qE '^fix(\(.+\))?:'; then
+                if [ "$BUMP" = "none" ]; then BUMP="patch"; fi
+              fi
+            done < <(git log "$RANGE" --pretty=format:'%B%x00')
+          fi
+
+          echo "Bump type: $BUMP"
+
+          if [ "$BUMP" = "none" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "No release-worthy commits since $LATEST_TAG — skipping release."
+            exit 0
+          fi
+
+          case "$BUMP" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+
+          NEXT="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "Next version: $NEXT"
+          echo "version=$NEXT" >> "$GITHUB_OUTPUT"
+          echo "skip=false"    >> "$GITHUB_OUTPUT"
+
+      # ──────────────────────────────────────────────
+      # 5. Cross-compile, archive, and checksum binaries
+      # ──────────────────────────────────────────────
+      - name: Build release artifacts
+        if: steps.next_version.outputs.skip != 'true'
+        env:
+          VERSION: ${{ steps.next_version.outputs.version }}
+          COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          LDFLAGS="-s -w -X main.Version=${VERSION} -X main.CommitHash=${COMMIT}"
+
+          declare -a TARGETS=(
+            "linux/amd64"
+            "linux/arm64"
+            "darwin/amd64"
+            "darwin/arm64"
+            "windows/amd64"
+            "windows/arm64"
+          )
+
+          mkdir -p dist
+          for TARGET in "${TARGETS[@]}"; do
+            OS="${TARGET%/*}"
+            ARCH="${TARGET#*/}"
+            STAGE="$(mktemp -d)"
+            BIN="chrome-cleaner"
+            [ "$OS" = "windows" ] && BIN="chrome-cleaner.exe"
+
+            echo "Building ${OS}/${ARCH}"
+            CGO_ENABLED=0 GOOS="$OS" GOARCH="$ARCH" \
+              go build -ldflags "$LDFLAGS" -o "${STAGE}/${BIN}" .
+
+            # Archive so the extracted binary is always named "chrome-cleaner";
+            # zip for Windows, tar.gz elsewhere (matches the install docs).
+            BASE="chrome-cleaner-${OS}-${ARCH}"
+            if [ "$OS" = "windows" ]; then
+              (cd "$STAGE" && zip -q "${BASE}.zip" "$BIN")
+              mv "${STAGE}/${BASE}.zip" "dist/${BASE}.zip"
+            else
+              tar -czf "dist/${BASE}.tar.gz" -C "$STAGE" "$BIN"
+            fi
+            rm -rf "$STAGE"
+          done
+
+          (cd dist && sha256sum * > SHA256SUMS)
+          ls -lh dist/
+
+      # ──────────────────────────────────────────────
+      # 6. Create & push the git tag (idempotent)
+      # ──────────────────────────────────────────────
+      - name: Create and push tag
+        if: steps.next_version.outputs.skip != 'true'
+        env:
+          VERSION: ${{ steps.next_version.outputs.version }}
+        run: |
+          set -euo pipefail
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION already exists — skipping tag creation."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$VERSION" -m "Release $VERSION"
+          git push origin "$VERSION"
+
+      # ──────────────────────────────────────────────
+      # 7. Create the GitHub Release & upload assets
+      # ──────────────────────────────────────────────
+      - name: Create GitHub Release
+        if: steps.next_version.outputs.skip != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.next_version.outputs.version }}
+          name: ${{ steps.next_version.outputs.version }}
+          generate_release_notes: true
+          files: dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

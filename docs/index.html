@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Chrome History Cleaner — A cross-platform CLI tool to inspect and surgically clean Google Chrome's cached history, visits, keywords, and autofill data for specific domains.">
+    <meta name="keywords" content="chrome, history, cleaner, CLI, privacy, browser, cache, autofill, Go, open source, cross-platform">
+    <meta name="author" content="AliReza Taleghani">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Chrome History Cleaner — Surgical Browser History Cleanup">
+    <meta property="og:description" content="A cross-platform CLI tool to inspect and clean Chrome browser history for specific domains. Supports dry-run, multi-profile, and deep cleaning of URLs, visits, keywords, and autofill.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://opscalehub.github.io/chromeHistoryCleaner/">
+    <meta property="og:image" content="https://opscalehub.github.io/chromeHistoryCleaner/og-image.svg">
+    <meta name="twitter:image" content="https://opscalehub.github.io/chromeHistoryCleaner/og-image.svg">
+    <meta property="og:site_name" content="Chrome History Cleaner">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Chrome History Cleaner — Surgical Browser History Cleanup">
+    <meta name="twitter:description" content="Cross-platform CLI tool to inspect and clean Chrome history for specific domains.">
+
+    <title>Chrome History Cleaner — Surgical Browser History Cleanup</title>
+
+    <!-- Favicon: Shield + Broom SVG -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%2300d4ff'/%3E%3Cstop offset='100%25' stop-color='%237c3aed'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M32 4L8 16v16c0 14.4 10.24 27.84 24 32 13.76-4.16 24-17.6 24-32V16L32 4z' fill='url(%23g)' opacity='0.9'/%3E%3Cpath d='M28 20l-4 18h2l1-4h6l1 4h2l-4-18h-4zm2 3l2.5 9h-5L30 23z' fill='white'/%3E%3Ccircle cx='38' cy='24' r='2' fill='white' opacity='0.8'/%3E%3Cpath d='M36 28l8 10M40 28l4 10' stroke='white' stroke-width='1.5' stroke-linecap='round' opacity='0.8'/%3E%3C/svg%3E">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Mark JS as available before first paint so scroll-reveal styles apply
+         only when they can actually be animated (graceful no-JS fallback). -->
+    <script>document.documentElement.classList.add('js-enabled');</script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#hero" class="nav-logo">
+                <svg class="nav-logo-icon" viewBox="0 0 64 64" width="28" height="28">
+                    <defs>
+                        <linearGradient id="logo-grad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#00d4ff"/>
+                            <stop offset="100%" stop-color="#7c3aed"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M32 4L8 16v16c0 14.4 10.24 27.84 24 32 13.76-4.16 24-17.6 24-32V16L32 4z" fill="url(#logo-grad)" opacity="0.9"/>
+                    <path d="M24 30l6 6 10-12" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Chrome History Cleaner</span>
+            </a>
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#installation">Install</a></li>
+                <li><a href="#usage">Usage</a></li>
+                <li><a href="#platforms">Platforms</a></li>
+                <li><a href="https://github.com/OpScaleHub/chromeHistoryCleaner" target="_blank" rel="noopener noreferrer" class="nav-github-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    GitHub
+                </a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-bg-effects">
+            <div class="hero-orb hero-orb-1"></div>
+            <div class="hero-orb hero-orb-2"></div>
+            <div class="hero-orb hero-orb-3"></div>
+            <div class="hero-grid"></div>
+        </div>
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge animate-in">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Open Source Privacy Tool
+                </div>
+                <h1 class="hero-title animate-in">
+                    Surgically Clean<br>
+                    <span class="gradient-text">Chrome History</span>
+                </h1>
+                <p class="hero-subtitle animate-in">
+                    A blazing-fast CLI tool to inspect, preview, and remove browsing history,
+                    visit records, search keywords, and autofill entries for specific domains.
+                    Cross-platform. Profile-aware. Safe by default.
+                </p>
+                <div class="hero-cta animate-in">
+                    <a href="#installation" class="btn btn-primary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                        Download
+                    </a>
+                    <a href="https://github.com/OpScaleHub/chromeHistoryCleaner" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                        View on GitHub
+                    </a>
+                </div>
+                <div class="hero-stats animate-in">
+                    <div class="stat">
+                        <span class="stat-value">5</span>
+                        <span class="stat-label">Data Types Cleaned</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat">
+                        <span class="stat-value">3</span>
+                        <span class="stat-label">Platforms Supported</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">Dependencies</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-terminal animate-in">
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-dots">
+                            <span class="dot dot-red"></span>
+                            <span class="dot dot-yellow"></span>
+                            <span class="dot dot-green"></span>
+                        </div>
+                        <div class="terminal-title">chrome-cleaner — bash</div>
+                        <div class="terminal-spacer"></div>
+                    </div>
+                    <div class="terminal-body" id="terminalBody">
+                        <div class="terminal-line">
+                            <span class="terminal-prompt">$</span>
+                            <span class="terminal-cursor" id="terminalCursor">█</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-scroll-indicator">
+            <span>Scroll to explore</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section features" id="features">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">Capabilities</span>
+                <h2 class="section-title">Everything You Need for<br><span class="gradient-text">Precise History Cleanup</span></h2>
+                <p class="section-subtitle">Built with safety and precision in mind. Preview before you delete, target specific profiles, and clean across all data types.</p>
+            </div>
+            <div class="features-grid">
+                <!-- Feature 1: Domain Targeting -->
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="M21 21l-4.35-4.35"/>
+                            <path d="M11 8v6M8 11h6"/>
+                        </svg>
+                    </div>
+                    <h3>Domain Targeting</h3>
+                    <p>Surgically remove history for specific domains. Only matching records are affected — everything else stays untouched.</p>
+                </div>
+                <!-- Feature 2: Dry Run Mode -->
+                <div class="feature-card fade-in">
+                    <div class="feature-icon feature-icon-purple">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <path d="M9 12l2 2 4-4"/>
+                        </svg>
+                    </div>
+                    <h3>Dry Run Mode</h3>
+                    <p>Preview exactly what will be removed before committing. See a detailed impact report with zero risk to your data.</p>
+                </div>
+                <!-- Feature 3: Multi-Profile -->
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                        </svg>
+                    </div>
+                    <h3>Multi-Profile Support</h3>
+                    <p>Detect and list all Chrome profiles. Target a specific profile by name — perfect for shared machines or work/personal setups.</p>
+                </div>
+                <!-- Feature 4: Deep Clean -->
+                <div class="feature-card fade-in">
+                    <div class="feature-icon feature-icon-purple">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7" rx="1"/>
+                            <rect x="14" y="3" width="7" height="7" rx="1"/>
+                            <rect x="3" y="14" width="7" height="7" rx="1"/>
+                            <rect x="14" y="14" width="7" height="7" rx="1"/>
+                        </svg>
+                    </div>
+                    <h3>Deep Clean</h3>
+                    <p>Cleans across five data types: history URLs, visit records, search keywords, autofill entries, and URL segments.</p>
+                </div>
+                <!-- Feature 5: Cross-Platform -->
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                            <line x1="8" y1="21" x2="16" y2="21"/>
+                            <line x1="12" y1="17" x2="12" y2="21"/>
+                        </svg>
+                    </div>
+                    <h3>Cross-Platform</h3>
+                    <p>Native support for Linux, macOS, and Windows. Automatically detects Chrome's data directory on each platform.</p>
+                </div>
+                <!-- Feature 6: Safety Check -->
+                <div class="feature-card fade-in">
+                    <div class="feature-icon feature-icon-purple">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                    </div>
+                    <h3>Safety First</h3>
+                    <p>Refuses to run if Chrome is open — preventing database corruption. Requires explicit confirmation before any deletion.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Installation Section -->
+    <section class="section installation" id="installation">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">Get Started</span>
+                <h2 class="section-title">Install in <span class="gradient-text">Seconds</span></h2>
+                <p class="section-subtitle">Download the pre-built binary for your platform, or build from source with Go.</p>
+            </div>
+            <div class="install-card fade-in">
+                <div class="install-tabs">
+                    <button class="install-tab active" data-tab="linux">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.504 0c-.155 0-.311.005-.466.015a11.46 11.46 0 00-.807.07c-.183.022-.364.05-.545.084-.13.025-.258.053-.386.084a5.85 5.85 0 00-.378.1c-.13.04-.258.083-.385.13-.178.063-.354.133-.527.21-.122.053-.243.11-.363.17a6.594 6.594 0 00-.348.183 4.04 4.04 0 00-.336.2 3.577 3.577 0 00-.325.218c-.11.08-.217.163-.322.25-.105.084-.208.172-.308.264-.1.09-.196.184-.29.28a5.13 5.13 0 00-.27.296c-.088.1-.173.203-.255.31-.082.106-.16.215-.235.327a5.606 5.606 0 00-.42.728c-.066.13-.127.264-.184.4-.057.135-.108.274-.155.416-.047.14-.088.284-.124.43a6.32 6.32 0 00-.093.433c-.024.147-.042.297-.055.448a7.2 7.2 0 00-.026.463c0 .158.003.316.012.474.008.157.02.314.038.47.017.155.04.31.066.463.028.153.06.304.097.454.037.15.08.298.126.444.048.146.1.29.158.43.057.14.12.278.187.413.068.134.14.266.217.394.077.128.16.254.246.376.087.122.18.24.276.355.097.114.2.225.306.332.107.107.218.21.333.308.115.098.234.192.358.28.123.088.25.172.382.25.13.078.265.15.403.218.138.067.28.128.424.183l.214.08c.142.05.286.092.433.128.147.037.297.067.448.09.15.023.302.04.456.05.153.01.307.015.461.015h.054c.154 0 .308-.005.46-.015.155-.01.308-.027.458-.05.15-.023.3-.053.448-.09.147-.036.29-.078.433-.128l.214-.08c.144-.055.286-.116.424-.183.138-.068.273-.14.403-.218.13-.078.26-.162.382-.25.124-.088.243-.182.358-.28.115-.098.226-.2.333-.308.106-.107.21-.218.306-.332.097-.115.189-.233.276-.355.087-.122.169-.248.246-.376.077-.128.149-.26.217-.394.067-.135.13-.273.187-.413.058-.14.11-.284.158-.43.047-.146.09-.294.126-.444.037-.15.069-.301.097-.454.027-.153.05-.308.066-.463.018-.156.03-.313.038-.47.009-.158.012-.316.012-.474 0-.154-.003-.31-.012-.463a6.87 6.87 0 00-.055-.448 5.598 5.598 0 00-.093-.433 4.74 4.74 0 00-.124-.43c-.047-.142-.098-.28-.155-.416a4.94 4.94 0 00-.184-.4 5.606 5.606 0 00-.42-.728c-.075-.112-.153-.22-.235-.327a4.58 4.58 0 00-.255-.31c-.087-.1-.178-.2-.27-.296a5.255 5.255 0 00-.29-.28c-.1-.092-.203-.18-.308-.264a3.79 3.79 0 00-.322-.25 3.577 3.577 0 00-.325-.218 4.04 4.04 0 00-.336-.2 6.594 6.594 0 00-.348-.183c-.12-.06-.24-.117-.363-.17a5.6 5.6 0 00-.527-.21c-.127-.047-.255-.09-.385-.13a5.85 5.85 0 00-.378-.1c-.128-.03-.256-.06-.386-.084a8.04 8.04 0 00-.545-.084 11.46 11.46 0 00-.807-.07A12.29 12.29 0 0012.504 0zm-.278 1.474c3.585.083 5.907 1.546 7.079 2.846.665.736 1.097 1.518 1.338 2.222.242.705.292 1.335.195 1.75-.045.19-.128.342-.236.454-.108.112-.248.186-.41.21-.33.05-.745-.09-1.108-.42-.505-.457-1.23-.735-2.096-.826-.863-.09-1.87.01-2.926.293-.5.135-.93.198-1.29.198h-.022c-.365 0-.803-.065-1.31-.202-1.057-.284-2.063-.384-2.927-.293-.866.092-1.59.37-2.096.826-.362.33-.776.47-1.108.42-.162-.024-.302-.098-.41-.21-.108-.112-.19-.264-.236-.455-.097-.414-.047-1.044.195-1.75.241-.703.673-1.485 1.338-2.22 1.172-1.3 3.494-2.764 7.08-2.847z"/></svg>
+                        Linux
+                    </button>
+                    <button class="install-tab" data-tab="macos">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                        macOS
+                    </button>
+                    <button class="install-tab" data-tab="windows">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+                        Windows
+                    </button>
+                    <button class="install-tab" data-tab="source">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                        Source
+                    </button>
+                </div>
+                <div class="install-panels">
+                    <div class="install-panel active" id="panel-linux">
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">bash</span>
+                                <button class="copy-btn" data-copy="curl -sL https://github.com/OpScaleHub/chromeHistoryCleaner/releases/latest/download/chrome-cleaner-linux-amd64.tar.gz | tar xz
+sudo mv chrome-cleaner /usr/local/bin/">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <pre><code><span class="code-comment"># Download and install the latest release</span>
+<span class="code-prompt">$</span> curl -sL https://github.com/OpScaleHub/chromeHistoryCleaner/releases/latest/download/chrome-cleaner-linux-amd64.tar.gz | tar xz
+<span class="code-prompt">$</span> sudo mv chrome-cleaner /usr/local/bin/
+
+<span class="code-comment"># Verify installation</span>
+<span class="code-prompt">$</span> chrome-cleaner -version</code></pre>
+                        </div>
+                    </div>
+                    <div class="install-panel" id="panel-macos">
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">bash</span>
+                                <button class="copy-btn" data-copy="ARCH=$([ &quot;$(uname -m)&quot; = arm64 ] &amp;&amp; echo arm64 || echo amd64)
+curl -sL https://github.com/OpScaleHub/chromeHistoryCleaner/releases/latest/download/chrome-cleaner-darwin-${ARCH}.tar.gz | tar xz
+sudo mv chrome-cleaner /usr/local/bin/">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <pre><code><span class="code-comment"># Download and install (auto-detects Intel or Apple Silicon)</span>
+<span class="code-prompt">$</span> ARCH=$([ "$(uname -m)" = arm64 ] &amp;&amp; echo arm64 || echo amd64)
+<span class="code-prompt">$</span> curl -sL https://github.com/OpScaleHub/chromeHistoryCleaner/releases/latest/download/chrome-cleaner-darwin-${ARCH}.tar.gz | tar xz
+<span class="code-prompt">$</span> sudo mv chrome-cleaner /usr/local/bin/
+
+<span class="code-comment"># Verify installation</span>
+<span class="code-prompt">$</span> chrome-cleaner -version</code></pre>
+                        </div>
+                    </div>
+                    <div class="install-panel" id="panel-windows">
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">powershell</span>
+                                <button class="copy-btn" data-copy="Invoke-WebRequest -Uri https://github.com/OpScaleHub/chromeHistoryCleaner/releases/latest/download/chrome-cleaner-windows-amd64.zip -OutFile chrome-cleaner.zip
+Expand-Archive chrome-cleaner.zip -DestinationPath C:\Tools\
+[Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\Tools', 'User')">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <pre><code><span class="code-comment"># Download and extract</span>
+<span class="code-prompt">PS&gt;</span> Invoke-WebRequest -Uri https://github.com/OpScaleHub/chromeHistoryCleaner/releases/latest/download/chrome-cleaner-windows-amd64.zip -OutFile chrome-cleaner.zip
+<span class="code-prompt">PS&gt;</span> Expand-Archive chrome-cleaner.zip -DestinationPath C:\Tools\
+
+<span class="code-comment"># Add to PATH</span>
+<span class="code-prompt">PS&gt;</span> [Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\Tools', 'User')</code></pre>
+                        </div>
+                    </div>
+                    <div class="install-panel" id="panel-source">
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">bash</span>
+                                <button class="copy-btn" data-copy="git clone https://github.com/OpScaleHub/chromeHistoryCleaner.git
+cd chromeHistoryCleaner
+go build -o chrome-cleaner .">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                                    Copy
+                                </button>
+                            </div>
+                            <pre><code><span class="code-comment"># Clone and build from source (requires Go 1.24+)</span>
+<span class="code-prompt">$</span> git clone https://github.com/OpScaleHub/chromeHistoryCleaner.git
+<span class="code-prompt">$</span> cd chromeHistoryCleaner
+<span class="code-prompt">$</span> go build -o chrome-cleaner .
+
+<span class="code-comment"># Run directly</span>
+<span class="code-prompt">$</span> ./chrome-cleaner --help</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Usage Section -->
+    <section class="section usage" id="usage">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">How It Works</span>
+                <h2 class="section-title">Simple, Powerful <span class="gradient-text">Commands</span></h2>
+                <p class="section-subtitle">Three commands. That's all you need. List profiles, preview changes, then clean.</p>
+            </div>
+            <div class="usage-grid">
+                <div class="usage-step fade-in">
+                    <div class="usage-step-number">01</div>
+                    <div class="usage-step-content">
+                        <h3>List Chrome Profiles</h3>
+                        <p>Discover all Chrome profiles on your system with their names and associated email addresses.</p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">terminal</span>
+                            </div>
+                            <pre><code><span class="code-prompt">$</span> chrome-cleaner -list-profiles
+
+<span class="code-output">Directory            | Name                 | Email
+-----------------------------------------------------------------
+Default              | Personal             | user@gmail.com
+Profile 1            | Work                 | user@company.com</span></code></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="usage-step fade-in">
+                    <div class="usage-step-number">02</div>
+                    <div class="usage-step-content">
+                        <h3>Preview with Dry Run</h3>
+                        <p>See exactly what would be removed before making any changes. The <code>-dry-run</code> flag ensures no data is modified.</p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">terminal</span>
+                            </div>
+                            <pre><code><span class="code-prompt">$</span> chrome-cleaner -site example.com -dry-run
+
+<span class="code-output">--- Impact Report for 'example.com' (Profile: Default) ---
+History URLs:      47
+Visit Records:     156
+Search Keywords:   12
+Autofill entries:  8
+
+Dry run completed. No data was modified.</span></code></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="usage-step fade-in">
+                    <div class="usage-step-number">03</div>
+                    <div class="usage-step-content">
+                        <h3>Clean a Specific Profile</h3>
+                        <p>Target a specific profile and domain. You'll be prompted for confirmation before any data is deleted.</p>
+                        <div class="code-block">
+                            <div class="code-header">
+                                <span class="code-lang">terminal</span>
+                            </div>
+                            <pre><code><span class="code-prompt">$</span> chrome-cleaner -site example.com -profile "Profile 1"
+
+<span class="code-output">--- Impact Report for 'example.com' (Profile: Profile 1) ---
+History URLs:      23
+Visit Records:     89
+Search Keywords:   5
+Autofill entries:  3
+
+Proceed with deletion? (y/N):</span> <span class="code-input">y</span>
+<span class="code-success">Cleanup complete. Please restart Chrome.</span></code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Platforms Section -->
+    <section class="section platforms" id="platforms">
+        <div class="container">
+            <div class="section-header fade-in">
+                <span class="section-label">Compatibility</span>
+                <h2 class="section-title">Runs Everywhere <span class="gradient-text">Chrome Does</span></h2>
+                <p class="section-subtitle">Single binary, zero dependencies. Automatically detects Chrome's data directory on each platform.</p>
+            </div>
+            <div class="platforms-grid fade-in">
+                <div class="platform-card">
+                    <div class="platform-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="48" height="48">
+                            <path d="M12.504 0c-.155 0-.311.005-.466.015-6.14.142-9.87 4.18-10.87 7.39-.35 1.13-.53 2.18-.53 3.1 0 1.59.38 2.91 1.02 3.97.89 1.48 2.35 2.58 4.15 3.22.62.22 1.28.38 1.96.48.87.12 1.78.14 2.69.05.76-.07 1.52-.22 2.27-.44.94-.28 1.84-.72 2.65-1.3.81-.58 1.53-1.29 2.1-2.13.58-.84.99-1.8 1.18-2.87.14-.78.17-1.58.08-2.37-.12-1.07-.48-2.09-1.04-2.98-.71-1.11-1.71-2.03-2.88-2.66-1.17-.64-2.52-.99-3.91-1.02-.15 0-.31 0-.47.01zm2.9 3.55c.87.29 1.6.76 2.18 1.37.73.76 1.18 1.73 1.27 2.79.06.68-.01 1.36-.21 2.01-.26.85-.74 1.61-1.39 2.21-.65.6-1.45 1.03-2.34 1.24-.58.13-1.18.18-1.78.13-.81-.07-1.58-.33-2.26-.75-.68-.42-1.24-1-1.63-1.69-.39-.69-.6-1.46-.61-2.25 0-.94.27-1.85.78-2.62.51-.77 1.23-1.37 2.08-1.74.57-.25 1.18-.39 1.81-.41.37-.01.73.02 1.09.09.28.06.55.14.81.25v-.63z"/>
+                        </svg>
+                    </div>
+                    <h3>Linux</h3>
+                    <p class="platform-path">~/.config/google-chrome/</p>
+                    <span class="platform-arch">amd64 / arm64</span>
+                </div>
+                <div class="platform-card">
+                    <div class="platform-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="48" height="48">
+                            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                        </svg>
+                    </div>
+                    <h3>macOS</h3>
+                    <p class="platform-path">~/Library/Application Support/Google/Chrome/</p>
+                    <span class="platform-arch">Intel / Apple Silicon</span>
+                </div>
+                <div class="platform-card">
+                    <div class="platform-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="48" height="48">
+                            <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+                        </svg>
+                    </div>
+                    <h3>Windows</h3>
+                    <p class="platform-path">%LOCALAPPDATA%\Google\Chrome\User Data\</p>
+                    <span class="platform-arch">x64 / ARM64</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="section cta-section">
+        <div class="container">
+            <div class="cta-card fade-in">
+                <div class="cta-bg-effects">
+                    <div class="cta-orb cta-orb-1"></div>
+                    <div class="cta-orb cta-orb-2"></div>
+                </div>
+                <h2>Ready to Take Control of<br>Your Browser History?</h2>
+                <p>Open source. Free forever. One command away.</p>
+                <div class="cta-buttons">
+                    <a href="#installation" class="btn btn-primary btn-lg">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                        Get Started
+                    </a>
+                    <a href="https://github.com/OpScaleHub/chromeHistoryCleaner" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-lg">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                        Star on GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="#hero" class="footer-logo">
+                        <svg viewBox="0 0 64 64" width="24" height="24">
+                            <defs>
+                                <linearGradient id="footer-grad" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#00d4ff"/>
+                                    <stop offset="100%" stop-color="#7c3aed"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M32 4L8 16v16c0 14.4 10.24 27.84 24 32 13.76-4.16 24-17.6 24-32V16L32 4z" fill="url(#footer-grad)" opacity="0.9"/>
+                            <path d="M24 30l6 6 10-12" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Chrome History Cleaner
+                    </a>
+                    <p>Open source privacy tool for Chrome browser history management.</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-col">
+                        <h4>Navigation</h4>
+                        <a href="#features">Features</a>
+                        <a href="#installation">Installation</a>
+                        <a href="#usage">Usage</a>
+                        <a href="#platforms">Platforms</a>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Project</h4>
+                        <a href="https://github.com/OpScaleHub/chromeHistoryCleaner" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+                        <a href="https://github.com/OpScaleHub/chromeHistoryCleaner/issues" target="_blank" rel="noopener noreferrer">Report a Bug</a>
+                        <a href="https://github.com/OpScaleHub/chromeHistoryCleaner/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+                        <a href="https://github.com/OpScaleHub/chromeHistoryCleaner/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Chrome History Cleaner. Released under the MIT License.</p>
+                <p>Made with <span class="footer-heart">&hearts;</span> by <a href="https://github.com/AliRezaTaleghani" target="_blank" rel="noopener noreferrer">AliReza Taleghani</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
